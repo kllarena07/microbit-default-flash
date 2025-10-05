@@ -1,0 +1,49 @@
+#![no_std]
+#![no_main]
+
+use core::ptr::write_volatile;
+
+use cortex_m::asm::nop;
+use cortex_m_rt::entry;
+use panic_halt as _;
+use rtt_target::{rprintln, rtt_init_print};
+
+#[entry]
+fn main() -> ! {
+    const GPIO0_PINCNF21_ROW1_ADDR: *mut u32 = 0x5000_0754 as *mut u32;
+    const GPIO0_PINCNF28_COL1_ADDR: *mut u32 = 0x5000_0770 as *mut u32;
+    const DIR_OUTPUT_POS: u32 = 0;
+    const PINCNF_DRIVE_LED: u32 = 1 << DIR_OUTPUT_POS;
+    // this is called bitmasking
+    // it is necessary since the direction bit could be at a position other than 0 (1 or 2)
+    // what this means: setting the direction as 0001 in this case works, but if the
+    // direction position is at 1, then that means you have to set it to 0010
+
+    unsafe {
+        write_volatile(GPIO0_PINCNF21_ROW1_ADDR, PINCNF_DRIVE_LED);
+        write_volatile(GPIO0_PINCNF28_COL1_ADDR, PINCNF_DRIVE_LED);
+        // this is setting the VALUES at these memory addresses to '1'
+    }
+    const GPIO0_OUT_ADDR: *mut u32 = 0x5000_0504 as *mut u32;
+    const GPIO0_OUT_ROW1_POS: u32 = 21;
+    let mut is_on: bool = false;
+
+    rtt_init_print!();
+    rprintln!("Starting...");
+
+    loop {
+        unsafe {
+            write_volatile(GPIO0_OUT_ADDR, (is_on as u32) << GPIO0_OUT_ROW1_POS);
+        }
+        for _ in 0..400_000 {
+            nop();
+        }
+        is_on = !is_on;
+
+        if is_on {
+            rprintln!("ON");
+        } else {
+            rprintln!("OFF");
+        }
+    }
+}
