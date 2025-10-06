@@ -135,7 +135,7 @@ fn main() -> ! {
         }
     }
 
-    let mut is_smiling = false;
+    let mut is_smiling = true;
 
     loop {
         unsafe {
@@ -147,9 +147,9 @@ fn main() -> ! {
             if gpio0_in_btn_a_val == 0 && gpio0_in_btn_b_val == 0 {
                 nop();
             } else if gpio0_in_btn_a_val == 0 && gpio0_in_btn_b_val == 1 {
-                is_smiling = false;
-            } else if gpio0_in_btn_a_val == 1 && gpio0_in_btn_b_val == 0 {
                 is_smiling = true;
+            } else if gpio0_in_btn_a_val == 1 && gpio0_in_btn_b_val == 0 {
+                is_smiling = false;
             }
 
             if is_smiling {
