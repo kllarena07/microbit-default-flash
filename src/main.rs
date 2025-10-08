@@ -63,81 +63,106 @@ fn main() -> ! {
     const GPIO0_IN_BTN_B_POS: u32 = 23;
     const GPIO0_OUT_SPEAKER_POS: u32 = 0;
 
-    fn smile() {
-        unsafe {
-            write_volatile(GPIO0_OUT_ADDR, 1 << ROW_PIN_NUMBS[1]);
-            write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
-
-            for _ in 0..MULTIPLEX_DELAY {
-                nop();
-            }
-
-            // Drawing the "cheeks"
-            write_volatile(GPIO0_OUT_ADDR, 1 << ROW_PIN_NUMBS[3]);
-            write_volatile(COLUMNS[0], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[1], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[3], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[4], 1 << DIR_OUTPUT_POS);
-
-            for _ in 0..MULTIPLEX_DELAY {
-                nop();
-            }
-
-            // Drawing row 5
-            write_volatile(GPIO0_OUT_ADDR, 1 << ROW_PIN_NUMBS[4]);
-            write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[2], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
-
-            for _ in 0..MULTIPLEX_DELAY {
-                nop();
+    fn set_columns(activation_matrix: &[u32; 5]) {
+        for i in 0..activation_matrix.len() {
+            unsafe {
+                write_volatile(COLUMNS[i], activation_matrix[i] << DIR_OUTPUT_POS);
             }
         }
     }
 
-    fn frown() {
+    fn draw_eyes() {
         unsafe {
-            write_volatile(GPIO0_OUT_ADDR, 1 << ROW_PIN_NUMBS[1]);
-            write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
+            write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[1]);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
+        }
+        const ACTIVATED: [u32; 5] = [0, 1, 0, 1, 0];
+        set_columns(&ACTIVATED);
+    }
 
-            for _ in 0..MULTIPLEX_DELAY {
-                nop();
-            }
-
+    fn draw_smile_cheeks() {
+        unsafe {
             // Drawing the "cheeks"
-            write_volatile(GPIO0_OUT_ADDR, 1 << ROW_PIN_NUMBS[3]);
-            write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[2], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
+            write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[3]);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
+        }
+        const ACTIVATED: [u32; 5] = [1, 0, 0, 0, 1];
+        set_columns(&ACTIVATED);
+    }
 
-            for _ in 0..MULTIPLEX_DELAY {
-                nop();
-            }
-
+    fn draw_smile_lips() {
+        unsafe {
             // Drawing row 5
-            write_volatile(GPIO0_OUT_ADDR, 1 << ROW_PIN_NUMBS[4]);
-            write_volatile(COLUMNS[0], 1 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[1], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[3], 0 << DIR_OUTPUT_POS);
-            write_volatile(COLUMNS[4], 1 << DIR_OUTPUT_POS);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
+            write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[4]);
+        }
+        const ACTIVATED: [u32; 5] = [0, 1, 1, 1, 0];
+        set_columns(&ACTIVATED);
+    }
 
-            for _ in 0..MULTIPLEX_DELAY {
-                nop();
-            }
+    fn smile() {
+        draw_eyes();
+
+        for _ in 0..MULTIPLEX_DELAY {
+            nop();
+        }
+
+        draw_smile_cheeks();
+
+        for _ in 0..MULTIPLEX_DELAY {
+            nop();
+        }
+
+        draw_smile_lips();
+
+        for _ in 0..MULTIPLEX_DELAY {
+            nop();
+        }
+    }
+
+    fn draw_frown_lips() {
+        unsafe {
+            // Drawing row 5
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
+            write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[3]);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
+        }
+
+        const ACTIVATED: [u32; 5] = [0, 1, 1, 1, 0];
+        set_columns(&ACTIVATED);
+    }
+
+    fn draw_frown_cheeks() {
+        unsafe {
+            // Drawing the "cheeks"
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
+            write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
+            write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[4]);
+        }
+        const ACTIVATED: [u32; 5] = [1, 0, 0, 0, 1];
+        set_columns(&ACTIVATED);
+    }
+
+    fn frown() {
+        draw_eyes();
+
+        for _ in 0..MULTIPLEX_DELAY {
+            nop();
+        }
+
+        draw_frown_cheeks();
+
+        for _ in 0..MULTIPLEX_DELAY {
+            nop();
+        }
+
+        draw_frown_lips();
+
+        for _ in 0..MULTIPLEX_DELAY {
+            nop();
         }
     }
 
@@ -146,50 +171,31 @@ fn main() -> ! {
     fn wind_up() {
         smile();
         let mut delay = 400;
-        unsafe {
-            while delay > 0 {
+        while delay > 0 {
+            unsafe {
                 write_volatile(GPIO0_OUT_ADDR, 1 << GPIO0_OUT_SPEAKER_POS);
-
-                write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[1]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
-                write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
-                for _ in 0..delay {
-                    nop();
-                }
-                // Drawing row 5
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
-                write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[4]);
-                write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[2], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
-                for _ in 0..delay {
-                    nop();
-                }
-                write_volatile(GPIO0_OUT_ADDR, 0 << GPIO0_OUT_SPEAKER_POS);
-
-                // Drawing the "cheeks"
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
-                write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[3]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
-                write_volatile(COLUMNS[0], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[1], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[3], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[4], 1 << DIR_OUTPUT_POS);
-
-                for _ in 0..delay {
-                    nop();
-                }
-                delay -= 1;
             }
+
+            draw_eyes();
+            for _ in 0..delay {
+                nop();
+            }
+
+            draw_smile_cheeks();
+            for _ in 0..delay {
+                nop();
+            }
+
+            unsafe {
+                write_volatile(GPIO0_OUT_ADDR, 0 << GPIO0_OUT_SPEAKER_POS);
+            }
+
+            draw_smile_lips();
+
+            for _ in 0..delay {
+                nop();
+            }
+            delay -= 1;
         }
     }
 
@@ -199,40 +205,17 @@ fn main() -> ! {
             while delay < 400 {
                 write_volatile(GPIO0_OUT_ADDR, 1 << GPIO0_OUT_SPEAKER_POS);
 
-                write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[1]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
-                write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
+                draw_eyes();
                 for _ in 0..delay {
                     nop();
                 }
-                // Drawing the "cheeks"
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
-                write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[3]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[4]);
-                write_volatile(COLUMNS[0], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[1], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[2], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[3], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[4], 0 << DIR_OUTPUT_POS);
+                draw_frown_cheeks();
                 for _ in 0..delay {
                     nop();
                 }
                 write_volatile(GPIO0_OUT_ADDR, 0 << GPIO0_OUT_SPEAKER_POS);
 
-                // Drawing row 5
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[1]);
-                write_volatile(GPIO0_OUTCLR_ADDR, 1 << ROW_PIN_NUMBS[3]);
-                write_volatile(GPIO0_OUTSET_ADDR, 1 << ROW_PIN_NUMBS[4]);
-                write_volatile(COLUMNS[0], 1 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[1], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[2], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[3], 0 << DIR_OUTPUT_POS);
-                write_volatile(COLUMNS[4], 1 << DIR_OUTPUT_POS);
+                draw_frown_lips();
                 for _ in 0..delay {
                     nop();
                 }
