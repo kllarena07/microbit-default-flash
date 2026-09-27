@@ -61,7 +61,7 @@ fn main() -> ! {
         // configure TIMER0 to work with 32 bits
         write_volatile(TIMER0_BITMODE, 3);
         
-        // set CC[0] to be 16000000
+        // set CC[0] to be 1000000, since TIMER0 was set to 1MHz somehow
         write_volatile(TIMER0_CC0, 1_000_000);
 
         // configure PPI CH0
